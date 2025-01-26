@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView, FlatList, Text, View, StyleSheet, Button, TextInput, Alert } from 'react-native';
 
-export default function Posts( { navigation }) {
+export default function Posts({ navigation }) {
   const [posts, setPosts] = useState([]);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
@@ -9,36 +9,68 @@ export default function Posts( { navigation }) {
 
   const JsonPlaceholder_API = 'https://jsonplaceholder.typicode.com/posts';
 
-  //Baixando as postagens da JsonPlaceholder
   useEffect(() => {
     fetchPosts();
   }, []);
 
-  //Baixando as postagens da JsonPlaceholder
+  // Carrega os posts da API
   const fetchPosts = async () => {
-    //Inserir Código de consultar os Posts da API
+    try {
+      const response = await fetch(JsonPlaceholder_API);
+      if (!response.ok) throw new Error('Erro ao carregar postagens.');
+      const data = await response.json();
+      setPosts(data); // Carrega os posts no estado
+    } catch (error) {
+      console.error('Erro ao buscar posts:', error);
+      Alert.alert('Erro', 'Não foi possível carregar as postagens.');
+    }
   };
 
-  //Adicionar uma Postagem
+  // Adiciona uma nova postagem
   const addPost = () => {
     if (title && body) {
-      //Inserir código para inserir postagem via API
+      const newPost = {
+        id: posts.length > 0 ? posts[posts.length - 1].id + 1 : 1, // Gera um ID único localmente
+        title,
+        body,
+        userId: 1,
+      };
+
+      // Simula persistência adicionando ao estado local
+      setPosts([newPost, ...posts]);
+      clearForm();
+      Alert.alert('Sucesso', 'Postagem adicionada com sucesso.');
+    } else {
+      Alert.alert('Erro', 'Preencha todos os campos antes de adicionar uma postagem.');
     }
   };
 
-  //Atualizar uma Postagem
+  // Atualiza uma postagem existente
   const updatePost = () => {
     if (title && body && editingId) {
-      //Inserir Código de atualizar a postagem na API
+      const updatedPosts = posts.map(post =>
+        post.id === editingId ? { ...post, title, body } : post
+      );
+
+      // Atualiza o estado local
+      setPosts(updatedPosts);
+      clearForm();
+      Alert.alert('Sucesso', 'Postagem atualizada com sucesso.');
+    } else {
+      Alert.alert('Erro', 'Preencha todos os campos antes de atualizar a postagem.');
     }
   };
 
-  //Deletando Postagem
+  // Deleta uma postagem
   const deletePost = id => {
-    //Deletando a postagem da API
+    const filteredPosts = posts.filter(post => post.id !== id);
+
+    // Atualiza o estado local
+    setPosts(filteredPosts);
+    Alert.alert('Sucesso', 'Postagem deletada com sucesso.');
   };
 
-  //Populando os dados da Postagem
+  // Preenche o formulário para edição
   const editPost = post => {
     setTitle(post.title);
     setBody(post.body);
@@ -105,10 +137,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: 'bold',
-  },
-  email: {
-    marginTop: 8,
-    fontStyle: 'italic',
   },
   input: {
     height: 40,
